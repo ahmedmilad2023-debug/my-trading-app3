@@ -85,26 +85,29 @@ body{background:#0d1117;color:#e6edf3;padding:0;min-height:100vh}
 .activation-box{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:30px 24px;max-width:400px;width:100%;text-align:center}
 .activation-box h2{color:#f0f6fc;margin-bottom:8px;font-size:20px}
 .activation-box p{color:#8b949e;font-size:14px;margin-bottom:16px}
-.activation-box input{width:100%;padding:10px 14px;background:#0d1117;border:1px solid #21262d;border-radius:6px;color:#f0f6fc;font-size:16px;text-align:center;margin-bottom:12px;direction:ltr}
+.activation-box input{width:100%;padding:12px 16px;background:#0d1117;border:1px solid #21262d;border-radius:8px;color:#f0f6fc;font-size:18px;text-align:center;margin-bottom:12px;direction:ltr}
 .activation-box input:focus{outline:none;border-color:#58a6ff}
-.activation-box button{width:100%;padding:10px;background:#238636;border:none;border-radius:6px;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.activation-box button{width:100%;padding:12px;background:#238636;border:none;border-radius:8px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:0.2s}
 .activation-box button:hover{background:#2ea043}
 .activation-box .error-msg{color:#da3633;font-size:13px;margin-top:8px;display:none}
-.activation-box .sub-info{color:#8b949e;font-size:12px;margin-top:12px;border-top:1px solid #21262d;padding-top:12px}
-.activation-box .sub-info span{color:#f0883e}
-.wallet-address{background:#0d1117;padding:8px 12px;border-radius:6px;border:1px solid #21262d;margin:8px 0;font-family:monospace;font-size:13px;color:#58a6ff;word-break:break-all;direction:ltr}
+.activation-box .sub-info{color:#8b949e;font-size:13px;margin-top:16px;border-top:1px solid #21262d;padding-top:16px}
+.activation-box .sub-info span{color:#f0883e;font-weight:700}
+.activation-box .sub-info .wallet{background:#0d1117;padding:10px;border-radius:6px;border:1px solid #21262d;margin:10px 0;font-family:monospace;font-size:14px;color:#58a6ff;word-break:break-all;direction:ltr}
 @media(max-width:400px){.price-grid{grid-template-columns:1fr 1fr}.price-grid .price-item:last-child{grid-column:span 2}.info-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <div id="activationOverlay" class="activation-overlay">
 <div class="activation-box">
-<h2>🔐 تفعيل التطبيق</h2>
-<p>أدخل كود التفعيل للوصول إلى الإشارات</p>
-<input type="text" id="activationCode" placeholder="أدخل الكود هنا" maxlength="20" onkeydown="if(event.key==='Enter')verifyActivation()">
-<button onclick="verifyActivation()">تفعيل</button>
-<div id="activationError" class="error-msg">⚠️ كود غير صحيح</div>
-<div class="sub-info">📅 الاشتراك لمدة 30 يوماً<br>🔑 كود المطور: <span>AhmedMaster2026</span></div>
+<h2 id="activationTitle">🔐 تفعيل التطبيق</h2>
+<p id="activationDesc">أدخل كود التفعيل للوصول إلى الإشارات</p>
+<input type="text" id="activationCode" placeholder="أدخل الكود هنا" onkeydown="if(event.key==='Enter')verifyActivation()">
+<button id="activationBtn" onclick="verifyActivation()">✅ تفعيل</button>
+<div id="activationError" class="error-msg">❌ كود غير صحيح</div>
+<div class="sub-info" id="activationSub">
+📅 الاشتراك لمدة 30 يوماً<br>
+🔑 كود المطور: <span>AhmedMaster2026</span>
+</div>
 </div>
 </div>
 <div class="container" id="app" style="display:none">
@@ -139,7 +142,6 @@ body{background:#0d1117;color:#e6edf3;padding:0;min-height:100vh}
 // ============================================================
 const MASTER_PASSWORD = 'AhmedMaster2026';
 const USDT_WALLET = 'TVkLCorN25YqC9t2FfndJF7YZVWAjY61FT';
-let activationData = null;
 let subscriptionEnd = null;
 
 function loadActivation(){
@@ -150,7 +152,6 @@ const data = JSON.parse(saved);
 if(data && data.endDate){
 const end = new Date(data.endDate);
 if(end > new Date()){
-activationData = data;
 subscriptionEnd = end;
 return true;
 }else{
@@ -164,9 +165,7 @@ return false;
 }
 
 function saveActivation(endDate){
-const data = {endDate: endDate.toISOString(), activatedAt: new Date().toISOString()};
-localStorage.setItem('crypto_signals_activation', JSON.stringify(data));
-activationData = data;
+localStorage.setItem('crypto_signals_activation', JSON.stringify({endDate: endDate.toISOString()}));
 subscriptionEnd = endDate;
 }
 
@@ -209,16 +208,16 @@ const now = new Date();
 if(now > subscriptionEnd){
 document.getElementById('app').style.display = 'none';
 document.getElementById('activationOverlay').style.display = 'flex';
-document.querySelector('.activation-box h2').textContent = '⛔ انتهى اشتراكك';
-document.querySelector('.activation-box p').textContent = 'يرجى التجديد عبر تحويل المبلغ إلى محفظة USDT:';
-document.querySelector('.activation-box .sub-info').innerHTML = `
-<div class="wallet-address">${USDT_WALLET}</div>
+document.getElementById('activationTitle').textContent = '⛔ انتهى اشتراكك';
+document.getElementById('activationDesc').textContent = 'يرجى التجديد عبر تحويل المبلغ إلى محفظة USDT:';
+document.getElementById('activationSub').innerHTML = `
+<div class="wallet">${USDT_WALLET}</div>
 📅 اشتراكك انتهى في ${subscriptionEnd.toLocaleDateString('ar-EG')}
 <br>🔑 استخدم كود المطور للدخول المباشر
 `;
 document.getElementById('activationCode').placeholder = 'كود التفعيل أو كود المطور';
 document.getElementById('activationCode').value = '';
-document.querySelector('.activation-box button').textContent = 'تفعيل الاشتراك';
+document.getElementById('activationBtn').textContent = '🔄 تفعيل الاشتراك';
 return false;
 }
 return true;
@@ -249,7 +248,6 @@ let currentTab = 'all';
 let showFavoritesOnly = false;
 let ws = null;
 let toastTimer = null;
-let tvWidget = null;
 
 // ============================================================
 // DOM REFS
@@ -619,4 +617,66 @@ html += `
 <div class="info-item"><span class="label">⏰ الوقت</span><span class="value">${s.time}</span></div>
 </div>
 <div class="price-grid">
-<div class
+<div class="price-item"><span class="label">سعر الدخول</span><span class="value">$${s.entryPrice.toFixed(4)}</span></div>
+<div class="price-item"><span class="label">السعر الحالي</span><span class="value">$${s.currentPrice.toFixed(4)}</span></div>
+<div class="price-item"><span class="label">الربح/الخسارة</span><span class="value ${profitClass}">${profit>=0?'+':''}$${profit.toFixed(2)}</span></div>
+</div>
+<div class="target-grid">
+<div class="target-item"><span class="label">🎯 الهدف (${s.riskReward||3}:1)</span><span class="value">$${s.target.toFixed(4)}</span></div>
+<div class="target-item"><span class="label">🛑 وقف الخسارة</span><span class="value">$${s.stopLoss.toFixed(4)}</span></div>
+</div>
+<div class="analysis-box">
+<span class="label">📝 تحليل الصفقة</span>
+<span class="value">${s.analysis}</span>
+</div>
+<div class="indicators-row">
+${s.orderBlock ? `<span class="chip ${s.orderBlock.type==='BUY'?'chip-buy':'chip-sell'}">${s.orderBlock.type==='BUY'?'📈 OB شراء':'📉 OB بيع'} ${s.orderBlock.strength}%</span>` : ''}
+${s.liquidityLevel ? `<span class="chip chip-liquidity">${s.liquidityLevel.type==='HIGH'?'🔺 سيولة عالية':'🔻 سيولة منخفضة'}</span>` : ''}
+<span class="chip chip-score">${liqStars}</span>
+<span class="chip chip-leverage">🔧 ${s.leverage||50}x</span>
+</div>
+<div class="footer-row">
+<span class="liquidity-stars">${liqStars}</span>
+<span class="confidence-text">الثقة: ${s.confidence}%</span>
+<button class="share-btn" onclick="shareSignal(${JSON.stringify(s).replace(/"/g,'&quot;')})">📤 مشاركة</button>
+</div>
+</div>
+`;
+}
+container.innerHTML = html;
+}
+
+function updateStats(){
+const total = allSignals.length;
+const buys = allSignals.filter(s=>s.isBullish).length;
+const sells = total - buys;
+const favs = allSignals.filter(s=>favorites.includes(s.symbol)).length;
+totalCount.textContent = `📈 ${total}`;
+buyCount.textContent = `🟢 ${buys}`;
+sellCount.textContent = `🔴 ${sells}`;
+favCount.textContent = `⭐ ${favs}`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function initApp(){
+if(!checkSubscription()) return;
+initTradingView();
+loadAllData();
+setInterval(()=>{
+if(document.visibilityState === 'visible') refreshData();
+}, 60000);
+}
+
+if(!loadActivation()){
+document.getElementById('activationOverlay').style.display = 'flex';
+document.getElementById('app').style.display = 'none';
+}else{
+document.getElementById('activationOverlay').style.display = 'none';
+document.getElementById('app').style.display = 'block';
+initApp();
+}
+</script>
+</body>
+  </html>
