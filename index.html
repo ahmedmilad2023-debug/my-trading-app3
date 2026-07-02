@@ -66,7 +66,7 @@ body{background:#0d1117;color:#e6edf3;padding:0;min-height:100vh}
 .chip-liquidity{background:#1a3a5c30;color:#58a6ff;border-color:#58a6ff80}
 .chip-score{background:#3d1a5c30;color:#d2a8ff;border-color:#d2a8ff80}
 .chip-leverage{background:#1a4a3c30;color:#f0883e;border-color:#f0883e80}
-.chip-time{background:#1a2a3c30;color:#8b949e;border-color:#30363d80}
+.chip-status{background:#1a2a3c30;color:#8b949e;border-color:#30363d80}
 .footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:6px;border-top:1px solid #21262d;flex-wrap:wrap;gap:4px}
 .footer-row .liquidity-stars{font-size:12px;color:#d29922}
 .footer-row .confidence-text{font-size:11px;color:#8b949e}
@@ -248,6 +248,7 @@ let currentTab = 'all';
 let showFavoritesOnly = false;
 let ws = null;
 let toastTimer = null;
+let signalHistory = JSON.parse(localStorage.getItem('signal_history') || '[]');
 
 // ============================================================
 // DOM REFS
@@ -268,6 +269,26 @@ el.textContent = msg;
 el.classList.add('show');
 clearTimeout(toastTimer);
 toastTimer = setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ============================================================
+// SIGNAL HISTORY (لحفظ التوقيت الثابت)
+// ============================================================
+function saveSignalToHistory(signal){
+const existing = signalHistory.findIndex(s => s.symbol === signal.symbol);
+if(existing > -1){
+signalHistory[existing] = signal;
+}else{
+signalHistory.push(signal);
+}
+if(signalHistory.length > 100){
+signalHistory = signalHistory.slice(-100);
+}
+localStorage.setItem('signal_history', JSON.stringify(signalHistory));
+}
+
+function getSignalFromHistory(symbol){
+return signalHistory.find(s => s.symbol === symbol) || null;
 }
 
 // ============================================================
@@ -309,8 +330,8 @@ const text = `📊 إشارة ${signal.action} لـ ${signal.symbol.replace('USD
 🎯 الهدف: $${signal.target.toFixed(4)} (رافعة ${LEVERAGE}x)
 🛑 وقف الخسارة: $${signal.stopLoss.toFixed(4)}
 📈 الثقة: ${signal.confidence}%
-📅 التاريخ: ${signal.date}
-⏰ الوقت: ${signal.time}
+📅 تاريخ الصدور: ${signal.signalDate}
+⏰ وقت الصدور: ${signal.signalTime}
 📝 التحليل: ${signal.analysis}
 🔹 السيولة: ${'⭐'.repeat(Math.min(5,Math.max(1,signal.liquidityScore||1)))}
 #تداول #عملات_رقمية #سيولة #OrderBlock`;
@@ -399,12 +420,21 @@ else { target = currentPrice * (1 - maxTargetDistance); }
 const ob = isBullish ? nearestBuy : nearestSell;
 const liq = isBullish ? nearLiqLow : nearLiqHigh;
 const confidence = calcConfidence(ob, liq, liquidityScore);
+
+const existingSignal = getSignalFromHistory(symbol);
+let signalDate, signalTime;
+if(existingSignal){
+signalDate = existingSignal.signalDate;
+signalTime = existingSignal.signalTime;
+}else{
 const now = new Date();
-const dateStr = now.toLocaleDateString('ar-EG');
-const timeStr = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+signalDate = now.toLocaleDateString('ar-EG');
+signalTime = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+}
+
 const analysis = generateAnalysis(symbol, isBullish, ob, liq);
 
-return {
+const newSignal = {
 symbol, action, entryPrice: currentPrice, currentPrice,
 target, stopLoss,
 orderBlock: ob,
@@ -414,10 +444,15 @@ isBullish,
 confidence,
 leverage: LEVERAGE,
 riskReward: RISK_REWARD,
-date: dateStr,
-time: timeStr,
-analysis: analysis
+signalDate: signalDate,
+signalTime: signalTime,
+analysis: analysis,
+lastUpdate: new Date().toISOString()
 };
+
+saveSignalToHistory(newSignal);
+
+return newSignal;
 }
 
 function findOrderBlocks(klines){
@@ -522,6 +557,11 @@ const idx = allSignals.findIndex(s=>s.symbol===symbol);
 if(idx>-1){
 allSignals[idx].currentPrice = price;
 allSignals[idx].entryPrice = allSignals[idx].entryPrice || price;
+const histIdx = signalHistory.findIndex(s=>s.symbol===symbol);
+if(histIdx>-1){
+signalHistory[histIdx].currentPrice = price;
+localStorage.setItem('signal_history', JSON.stringify(signalHistory));
+}
 renderSignals();
 updateStats();
 }
@@ -613,8 +653,8 @@ html += `
 </div>
 </div>
 <div class="info-grid">
-<div class="info-item"><span class="label">📅 التاريخ</span><span class="value">${s.date}</span></div>
-<div class="info-item"><span class="label">⏰ الوقت</span><span class="value">${s.time}</span></div>
+<div class="info-item"><span class="label">📅 تاريخ الصدور</span><span class="value">${s.signalDate}</span></div>
+<div class="info-item"><span class="label">⏰ وقت الصدور</span><span class="value">${s.signalTime}</span></div>
 </div>
 <div class="price-grid">
 <div class="price-item"><span class="label">سعر الدخول</span><span class="value">$${s.entryPrice.toFixed(4)}</span></div>
@@ -634,6 +674,7 @@ ${s.orderBlock ? `<span class="chip ${s.orderBlock.type==='BUY'?'chip-buy':'chip
 ${s.liquidityLevel ? `<span class="chip chip-liquidity">${s.liquidityLevel.type==='HIGH'?'🔺 سيولة عالية':'🔻 سيولة منخفضة'}</span>` : ''}
 <span class="chip chip-score">${liqStars}</span>
 <span class="chip chip-leverage">🔧 ${s.leverage||50}x</span>
+<span class="chip chip-status">${s.isBullish?'🟢 نشطة':'🔴 نشطة'}</span>
 </div>
 <div class="footer-row">
 <span class="liquidity-stars">${liqStars}</span>
