@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <title>إشارات السيولة - Crypto Signals Pro</title>
-<!-- TradingView Widget -->
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
@@ -49,10 +48,17 @@ body{background:#0d1117;color:#e6edf3;padding:0;min-height:100vh}
 .price-item .value{font-size:13px;font-weight:600;color:#f0f6fc;direction:ltr}
 .price-item .value.profit{color:#2ea043}
 .price-item .value.loss{color:#da3633}
-.target-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px}
+.target-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
 .target-item{background:#0d1117;padding:4px 8px;border-radius:4px;text-align:center}
 .target-item .label{font-size:9px;color:#8b949e;display:block}
 .target-item .value{font-size:12px;font-weight:600;color:#f0f6fc;direction:ltr}
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
+.info-item{background:#0d1117;padding:4px 8px;border-radius:4px;text-align:center}
+.info-item .label{font-size:9px;color:#8b949e;display:block}
+.info-item .value{font-size:11px;font-weight:500;color:#f0f6fc}
+.analysis-box{background:#0d1117;padding:8px 10px;border-radius:6px;margin-bottom:8px;border-right:3px solid #58a6ff}
+.analysis-box .label{font-size:10px;color:#8b949e;display:block;margin-bottom:2px}
+.analysis-box .value{font-size:12px;color:#f0f6fc;line-height:1.5}
 .indicators-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
 .chip{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;border:1px solid}
 .chip-buy{background:#1a4a2c30;color:#2ea043;border-color:#2ea04380}
@@ -60,6 +66,7 @@ body{background:#0d1117;color:#e6edf3;padding:0;min-height:100vh}
 .chip-liquidity{background:#1a3a5c30;color:#58a6ff;border-color:#58a6ff80}
 .chip-score{background:#3d1a5c30;color:#d2a8ff;border-color:#d2a8ff80}
 .chip-leverage{background:#1a4a3c30;color:#f0883e;border-color:#f0883e80}
+.chip-time{background:#1a2a3c30;color:#8b949e;border-color:#30363d80}
 .footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:6px;border-top:1px solid #21262d;flex-wrap:wrap;gap:4px}
 .footer-row .liquidity-stars{font-size:12px;color:#d29922}
 .footer-row .confidence-text{font-size:11px;color:#8b949e}
@@ -74,11 +81,33 @@ body{background:#0d1117;color:#e6edf3;padding:0;min-height:100vh}
 .empty-box .icon{font-size:36px;display:block;margin-bottom:8px}
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#161b22;border:1px solid #30363d;padding:8px 20px;border-radius:8px;color:#f0f6fc;font-size:13px;z-index:100;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:90%}
 .toast.show{opacity:1}
-@media(max-width:400px){.price-grid{grid-template-columns:1fr 1fr}.price-grid .price-item:last-child{grid-column:span 2}}
+.activation-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#0d1117;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.activation-box{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:30px 24px;max-width:400px;width:100%;text-align:center}
+.activation-box h2{color:#f0f6fc;margin-bottom:8px;font-size:20px}
+.activation-box p{color:#8b949e;font-size:14px;margin-bottom:16px}
+.activation-box input{width:100%;padding:10px 14px;background:#0d1117;border:1px solid #21262d;border-radius:6px;color:#f0f6fc;font-size:16px;text-align:center;margin-bottom:12px;direction:ltr}
+.activation-box input:focus{outline:none;border-color:#58a6ff}
+.activation-box button{width:100%;padding:10px;background:#238636;border:none;border-radius:6px;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.activation-box button:hover{background:#2ea043}
+.activation-box .error-msg{color:#da3633;font-size:13px;margin-top:8px;display:none}
+.activation-box .sub-info{color:#8b949e;font-size:12px;margin-top:12px;border-top:1px solid #21262d;padding-top:12px}
+.activation-box .sub-info span{color:#f0883e}
+.wallet-address{background:#0d1117;padding:8px 12px;border-radius:6px;border:1px solid #21262d;margin:8px 0;font-family:monospace;font-size:13px;color:#58a6ff;word-break:break-all;direction:ltr}
+@media(max-width:400px){.price-grid{grid-template-columns:1fr 1fr}.price-grid .price-item:last-child{grid-column:span 2}.info-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<div class="container" id="app">
+<div id="activationOverlay" class="activation-overlay">
+<div class="activation-box">
+<h2>🔐 تفعيل التطبيق</h2>
+<p>أدخل كود التفعيل للوصول إلى الإشارات</p>
+<input type="text" id="activationCode" placeholder="أدخل الكود هنا" maxlength="20" onkeydown="if(event.key==='Enter')verifyActivation()">
+<button onclick="verifyActivation()">تفعيل</button>
+<div id="activationError" class="error-msg">⚠️ كود غير صحيح</div>
+<div class="sub-info">📅 الاشتراك لمدة 30 يوماً<br>🔑 كود المطور: <span>AhmedMaster2026</span></div>
+</div>
+</div>
+<div class="container" id="app" style="display:none">
 <div class="header">
 <h1>📊 إشارات السيولة Pro</h1>
 <div class="header-actions">
@@ -105,6 +134,96 @@ body{background:#0d1117;color:#e6edf3;padding:0;min-height:100vh}
 </div>
 <div id="toast" class="toast"></div>
 <script>
+// ============================================================
+// ACTIVATION SYSTEM
+// ============================================================
+const MASTER_PASSWORD = 'AhmedMaster2026';
+const USDT_WALLET = 'TVkLCorN25YqC9t2FfndJF7YZVWAjY61FT';
+let activationData = null;
+let subscriptionEnd = null;
+
+function loadActivation(){
+try{
+const saved = localStorage.getItem('crypto_signals_activation');
+if(saved){
+const data = JSON.parse(saved);
+if(data && data.endDate){
+const end = new Date(data.endDate);
+if(end > new Date()){
+activationData = data;
+subscriptionEnd = end;
+return true;
+}else{
+localStorage.removeItem('crypto_signals_activation');
+return false;
+}
+}
+}
+return false;
+}catch(e){return false;}
+}
+
+function saveActivation(endDate){
+const data = {endDate: endDate.toISOString(), activatedAt: new Date().toISOString()};
+localStorage.setItem('crypto_signals_activation', JSON.stringify(data));
+activationData = data;
+subscriptionEnd = endDate;
+}
+
+function verifyActivation(){
+const input = document.getElementById('activationCode');
+const code = input.value.trim();
+const errorEl = document.getElementById('activationError');
+if(!code){
+errorEl.style.display = 'block';
+errorEl.textContent = '⚠️ الرجاء إدخال الكود';
+return;
+}
+if(code === MASTER_PASSWORD){
+const end = new Date();
+end.setFullYear(end.getFullYear() + 10);
+saveActivation(end);
+document.getElementById('activationOverlay').style.display = 'none';
+document.getElementById('app').style.display = 'block';
+showToast('🔓 مرحباً أيها المطور! تم التفعيل مدى الحياة');
+initApp();
+return;
+}
+if(code.length === 10){
+const end = new Date();
+end.setDate(end.getDate() + 30);
+saveActivation(end);
+document.getElementById('activationOverlay').style.display = 'none';
+document.getElementById('app').style.display = 'block';
+showToast('✅ تم التفعيل بنجاح! اشتراكك صالح لمدة 30 يوماً');
+initApp();
+return;
+}
+errorEl.style.display = 'block';
+errorEl.textContent = '❌ كود غير صحيح! جرب مرة أخرى';
+}
+
+function checkSubscription(){
+if(!subscriptionEnd) return false;
+const now = new Date();
+if(now > subscriptionEnd){
+document.getElementById('app').style.display = 'none';
+document.getElementById('activationOverlay').style.display = 'flex';
+document.querySelector('.activation-box h2').textContent = '⛔ انتهى اشتراكك';
+document.querySelector('.activation-box p').textContent = 'يرجى التجديد عبر تحويل المبلغ إلى محفظة USDT:';
+document.querySelector('.activation-box .sub-info').innerHTML = `
+<div class="wallet-address">${USDT_WALLET}</div>
+📅 اشتراكك انتهى في ${subscriptionEnd.toLocaleDateString('ar-EG')}
+<br>🔑 استخدم كود المطور للدخول المباشر
+`;
+document.getElementById('activationCode').placeholder = 'كود التفعيل أو كود المطور';
+document.getElementById('activationCode').value = '';
+document.querySelector('.activation-box button').textContent = 'تفعيل الاشتراك';
+return false;
+}
+return true;
+}
+
 // ============================================================
 // KONSTANTS
 // ============================================================
@@ -136,7 +255,6 @@ let tvWidget = null;
 // DOM REFS
 // ============================================================
 const container = document.getElementById('signalsContainer');
-const statsBar = document.getElementById('statsBar');
 const totalCount = document.getElementById('totalCount');
 const buyCount = document.getElementById('buyCount');
 const sellCount = document.getElementById('sellCount');
@@ -193,6 +311,9 @@ const text = `📊 إشارة ${signal.action} لـ ${signal.symbol.replace('USD
 🎯 الهدف: $${signal.target.toFixed(4)} (رافعة ${LEVERAGE}x)
 🛑 وقف الخسارة: $${signal.stopLoss.toFixed(4)}
 📈 الثقة: ${signal.confidence}%
+📅 التاريخ: ${signal.date}
+⏰ الوقت: ${signal.time}
+📝 التحليل: ${signal.analysis}
 🔹 السيولة: ${'⭐'.repeat(Math.min(5,Math.max(1,signal.liquidityScore||1)))}
 #تداول #عملات_رقمية #سيولة #OrderBlock`;
 if(navigator.share){
@@ -207,9 +328,30 @@ showToast('⚠️ تعذر المشاركة');
 }
 
 // ============================================================
-// SMART MONEY ENGINE (Liquidity + Order Block ONLY)
-// مع تعديل الأهداف لرافعة 50x ونسبة مخاطرة 1:3
+// SMART MONEY ENGINE
 // ============================================================
+function generateAnalysis(symbol, isBullish, ob, liq){
+let analysis = '';
+if(isBullish){
+if(ob && ob.type==='BUY'){
+analysis = `ارتداد من منطقة طلب (Order Block) عند $${ob.level.toFixed(4)} بقوة ${ob.strength}%`;
+}else if(liq && liq.type==='LOW'){
+analysis = `كسر هيكل السوق مع سيولة منخفضة عند $${liq.price.toFixed(4)}`;
+}else{
+analysis = `تكوين منطقة طلب جديدة مع زخم صاعد`;
+}
+}else{
+if(ob && ob.type==='SELL'){
+analysis = `ارتداد من منطقة عرض (Order Block) عند $${ob.level.toFixed(4)} بقوة ${ob.strength}%`;
+}else if(liq && liq.type==='HIGH'){
+analysis = `كسر هيكل السوق مع سيولة عالية عند $${liq.price.toFixed(4)}`;
+}else{
+analysis = `تكوين منطقة عرض جديدة مع زخم هابط`;
+}
+}
+return analysis;
+}
+
 function analyzeSmartMoney(symbol, klines, currentPrice){
 if(!klines || klines.length < LOOKBACK) return null;
 const orderBlocks = findOrderBlocks(klines);
@@ -233,19 +375,13 @@ isBullish = buyDist < sellDist;
 }
 
 const action = isBullish ? 'شراء' : 'بيع';
-
-// حساب الأهداف ووقف الخسارة بنسبة مخاطرة 1:3 مع رافعة 50x
-// نأخذ مسافة وقف الخسارة كنسبة مئوية من السعر الحالي
-let stopDistancePercent = 0.02; // 2% افتراضي
+let stopDistancePercent = 0.02;
 if(isBullish && nearLiqLow){
 stopDistancePercent = (currentPrice - nearLiqLow.price) / currentPrice;
 } else if(!isBullish && nearLiqHigh){
 stopDistancePercent = (nearLiqHigh.price - currentPrice) / currentPrice;
 }
-// تحديد حد أدنى وأقصى للمسافة
 stopDistancePercent = Math.max(0.005, Math.min(0.05, stopDistancePercent));
-
-// مع الرافعة 50x، نضرب المسافة في 3 للحصول على الهدف (نسبة مخاطرة 1:3)
 const targetDistancePercent = stopDistancePercent * RISK_REWARD;
 
 let target, stopLoss;
@@ -256,20 +392,19 @@ target = currentPrice * (1 + targetDistancePercent);
 stopLoss = currentPrice * (1 + stopDistancePercent);
 target = currentPrice * (1 - targetDistancePercent);
 }
-
-// التأكد من أن الهدف ضمن حدود معقولة
-const maxTargetDistance = 0.15; // 15% كحد أقصى للهدف
+const maxTargetDistance = 0.15;
 if(Math.abs(target - currentPrice)/currentPrice > maxTargetDistance){
-if(isBullish){
-target = currentPrice * (1 + maxTargetDistance);
-} else {
-target = currentPrice * (1 - maxTargetDistance);
-}
+if(isBullish){ target = currentPrice * (1 + maxTargetDistance); }
+else { target = currentPrice * (1 - maxTargetDistance); }
 }
 
 const ob = isBullish ? nearestBuy : nearestSell;
 const liq = isBullish ? nearLiqLow : nearLiqHigh;
 const confidence = calcConfidence(ob, liq, liquidityScore);
+const now = new Date();
+const dateStr = now.toLocaleDateString('ar-EG');
+const timeStr = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+const analysis = generateAnalysis(symbol, isBullish, ob, liq);
 
 return {
 symbol, action, entryPrice: currentPrice, currentPrice,
@@ -280,7 +415,10 @@ liquidityScore,
 isBullish,
 confidence,
 leverage: LEVERAGE,
-riskReward: RISK_REWARD
+riskReward: RISK_REWARD,
+date: dateStr,
+time: timeStr,
+analysis: analysis
 };
 }
 
@@ -368,7 +506,7 @@ openPrice:data.openPrice
 }
 
 // ============================================================
-// WEBSOCKET (Real-time price updates)
+// WEBSOCKET
 // ============================================================
 function connectWebSocket(){
 if(ws) { ws.close(); ws=null; }
@@ -390,7 +528,7 @@ renderSignals();
 updateStats();
 }
 }
-} catch(err){ /* ignore */ }
+} catch(err){}
 };
 ws.onclose = ()=>{
 setTimeout(connectWebSocket, 5000);
@@ -403,7 +541,6 @@ setTimeout(connectWebSocket, 5000);
 function initTradingView(){
 const container = document.getElementById('tradingviewWidget');
 container.innerHTML = '';
-// استخدام iframe مباشر لتجنب مشاكل widget
 const iframe = document.createElement('iframe');
 iframe.src = 'https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE:BTCUSDT&interval=60&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&hideideas=1&theme=dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=ar&withdateranges=1&hide_volume=0&hide_legend=0&hide_side_toolbar=0&allow_symbol_change=1&show_popup_button=1&popup_width=1000&popup_height=650';
 iframe.style.width = '100%';
@@ -477,53 +614,9 @@ html += `
 <button class="favorite-btn ${isFav?'active':''}" onclick="toggleFavorite('${s.symbol}')">${isFav?'❤️':'🤍'}</button>
 </div>
 </div>
+<div class="info-grid">
+<div class="info-item"><span class="label">📅 التاريخ</span><span class="value">${s.date}</span></div>
+<div class="info-item"><span class="label">⏰ الوقت</span><span class="value">${s.time}</span></div>
+</div>
 <div class="price-grid">
-<div class="price-item"><span class="label">سعر الدخول</span><span class="value">$${s.entryPrice.toFixed(4)}</span></div>
-<div class="price-item"><span class="label">السعر الحالي</span><span class="value">$${s.currentPrice.toFixed(4)}</span></div>
-<div class="price-item"><span class="label">الربح/الخسارة</span><span class="value ${profitClass}">${profit>=0?'+':''}$${profit.toFixed(2)}</span></div>
-</div>
-<div class="target-grid">
-<div class="target-item"><span class="label">🎯 الهدف (${s.riskReward||3}:1)</span><span class="value">$${s.target.toFixed(4)}</span></div>
-<div class="target-item"><span class="label">🛑 وقف الخسارة</span><span class="value">$${s.stopLoss.toFixed(4)}</span></div>
-</div>
-<div class="indicators-row">
-${s.orderBlock ? `<span class="chip ${s.orderBlock.type==='BUY'?'chip-buy':'chip-sell'}">${s.orderBlock.type==='BUY'?'📈 OB شراء':'📉 OB بيع'} ${s.orderBlock.strength}%</span>` : ''}
-${s.liquidityLevel ? `<span class="chip chip-liquidity">${s.liquidityLevel.type==='HIGH'?'🔺 سيولة عالية':'🔻 سيولة منخفضة'}</span>` : ''}
-<span class="chip chip-score">${liqStars}</span>
-<span class="chip chip-leverage">🔧 ${s.leverage||50}x</span>
-</div>
-<div class="footer-row">
-<span class="liquidity-stars">${liqStars}</span>
-<span class="confidence-text">الثقة: ${s.confidence}%</span>
-<button class="share-btn" onclick="shareSignal(${JSON.stringify(s).replace(/"/g,'&quot;')})">📤 مشاركة</button>
-</div>
-</div>
-`;
-}
-container.innerHTML = html;
-}
-
-function updateStats(){
-const total = allSignals.length;
-const buys = allSignals.filter(s=>s.isBullish).length;
-const sells = total - buys;
-const favs = allSignals.filter(s=>favorites.includes(s.symbol)).length;
-totalCount.textContent = `📈 ${total}`;
-buyCount.textContent = `🟢 ${buys}`;
-sellCount.textContent = `🔴 ${sells}`;
-favCount.textContent = `⭐ ${favs}`;
-}
-
-// ============================================================
-// INIT
-// ============================================================
-initTradingView();
-loadAllData();
-
-// Auto-refresh every 60 seconds
-setInterval(()=>{
-if(document.visibilityState === 'visible') refreshData();
-}, 60000);
-</script>
-</body>
-</html>
+<div class
